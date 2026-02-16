@@ -351,3 +351,49 @@ function testAutenticar() {
   Logger.log(JSON.stringify(resultado));
   return resultado;
 }
+
+/**
+ * Función de DEBUG - Ver qué datos hay en CONTROLES
+ * Ejecuta esta función para ver qué está pasando
+ */
+function debugVerControles() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const hoja = ss.getSheetByName(HOJA_CONTROLES);
+  const filas = hoja.getDataRange().getValues();
+
+  Logger.log('===== DEBUG CONTROLES =====');
+  Logger.log('Total de filas: ' + filas.length);
+  Logger.log('');
+
+  // Mostrar encabezados
+  Logger.log('ENCABEZADOS (Fila 1):');
+  Logger.log(JSON.stringify(filas[0]));
+  Logger.log('');
+
+  // Mostrar primeras 5 filas de datos
+  Logger.log('PRIMERAS 5 FILAS DE DATOS:');
+  for (let i = 1; i < Math.min(6, filas.length); i++) {
+    Logger.log('Fila ' + (i+1) + ':');
+    Logger.log('  DNI (A): ' + filas[i][0]);
+    Logger.log('  FECHA (B): ' + filas[i][1]);
+    Logger.log('  PESO (C): ' + filas[i][2]);
+    Logger.log('  TALLA (D): ' + filas[i][3]);
+    Logger.log('  IMC (E): ' + filas[i][4]);
+    Logger.log('  DIAG_IMC (F): ' + filas[i][5]);
+    Logger.log('');
+  }
+
+  // Contar filas con datos
+  let filasConDatos = 0;
+  for (let i = 1; i < filas.length; i++) {
+    if (filas[i][0]) filasConDatos++;
+  }
+
+  Logger.log('Filas con DNI válido: ' + filasConDatos);
+
+  return {
+    totalFilas: filas.length - 1,
+    filasConDatos: filasConDatos,
+    primeraFila: filas.length > 1 ? filas[1] : null
+  };
+}
