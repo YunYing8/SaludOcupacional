@@ -1000,6 +1000,7 @@
                   <th>IMC</th>
                   <th>Diagnóstico IMC</th>
                   <th>Presión (mmHg)</th>
+                  <th>PULSO (lpm)</th>
                   <th>Diagnóstico PA</th>
                   <th>Glucosa (mg/dL)</th>
                   <th>Diagnóstico Glucosa</th>
@@ -1007,7 +1008,7 @@
               </thead>
               <tbody id="tablaTrabajadorControles">
                 <tr>
-                  <td colspan="9" class="text-center">
+                  <td colspan="10" class="text-center">
                     <div class="skeleton skeleton-text"></div>
                   </td>
                 </tr>
@@ -1072,6 +1073,7 @@
                   <th>IMC</th>
                   <th>Diag. IMC</th>
                   <th>PA</th>
+                  <th>PULSO</th>
                   <th>Diag. PA</th>
                   <th>Glucosa</th>
                   <th>Diag. Glucosa</th>
@@ -1080,7 +1082,7 @@
               </thead>
               <tbody id="tablaAdminControles">
                 <tr>
-                  <td colspan="11" class="text-center">
+                  <td colspan="12" class="text-center">
                     <div class="skeleton skeleton-text"></div>
                   </td>
                 </tr>
@@ -1103,7 +1105,17 @@
         <form id="formControl" onsubmit="guardarControl(event)">
           <div class="form-group">
             <label for="controlDni">DNI</label>
-            <input type="text" id="controlDni" class="form-input" required pattern="[0-9]{8}" maxlength="8">
+            <input type="text" id="controlDni" class="form-input" required pattern="[0-9]{8}" maxlength="8" oninput="validarDniPersonal(this.value)">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="controlNombreCompleto">Nombre Completo</label>
+              <input type="text" id="controlNombreCompleto" class="form-input" readonly style="background-color: #f5f5f5; cursor: not-allowed;">
+            </div>
+            <div class="form-group">
+              <label for="controlEdad">Edad</label>
+              <input type="text" id="controlEdad" class="form-input" readonly style="background-color: #f5f5f5; cursor: not-allowed; width: 80px;">
+            </div>
           </div>
           <div class="form-group">
             <label for="controlFecha">Fecha</label>
@@ -1128,6 +1140,10 @@
               <label for="controlDiastolica">Presión Diastólica</label>
               <input type="number" id="controlDiastolica" class="form-input" min="0">
             </div>
+          </div>
+          <div class="form-group">
+            <label for="controlPulso">PULSO (lpm)</label>
+            <input type="number" id="controlPulso" class="form-input" min="0" max="220">
           </div>
           <div class="form-group">
             <label for="controlGlucosa">Glucosa (mg/dL)</label>
@@ -1630,7 +1646,7 @@
         .withFailureHandler(function(error) {
           mostrarLoading(false);
           const tbody = document.getElementById('tablaTrabajadorControles');
-          tbody.innerHTML = '<tr><td colspan="9" class="text-center">Error al cargar controles: ' + error.message + '</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="10" class="text-center">Error al cargar controles: ' + error.message + '</td></tr>';
         })
         .getControlesPorDni(dni);
     }
@@ -1639,7 +1655,7 @@
       const tbody = document.getElementById('tablaTrabajadorControles');
 
       if (!controles || controles.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="text-center">No hay controles registrados</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" class="text-center">No hay controles registrados</td></tr>';
         document.getElementById('healthRecommendations').innerHTML = '';
         return;
       }
@@ -1659,6 +1675,7 @@
         html += '<td>' + (c.imc || '-') + '</td>';
         html += '<td><span class="badge ' + obtenerBadgeColor('imc', c.diag_imc) + '">' + (c.diag_imc || '-') + '</span></td>';
         html += '<td>' + pa + '</td>';
+        html += '<td>' + (c.pulso || '-') + '</td>';
         html += '<td><span class="badge ' + obtenerBadgeColor('pa', c.diag_pa) + '">' + (c.diag_pa || '-') + '</span></td>';
         html += '<td>' + (c.glucosa || '-') + '</td>';
         html += '<td><span class="badge ' + obtenerBadgeColor('glucosa', c.diag_glucosa) + '">' + (c.diag_glucosa || '-') + '</span></td>';
@@ -1753,7 +1770,7 @@
       const tbody = document.getElementById('tablaAdminControles');
 
       if (!controles || controles.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="11" class="text-center">No hay controles registrados</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="12" class="text-center">No hay controles registrados</td></tr>';
         return;
       }
 
@@ -1769,6 +1786,7 @@
         html += '<td>' + (c.imc || '-') + '</td>';
         html += '<td><span class="badge ' + obtenerBadgeColor('imc', c.diag_imc) + '">' + (c.diag_imc || '-') + '</span></td>';
         html += '<td>' + pa + '</td>';
+        html += '<td>' + (c.pulso || '-') + '</td>';
         html += '<td><span class="badge ' + obtenerBadgeColor('pa', c.diag_pa) + '">' + (c.diag_pa || '-') + '</span></td>';
         html += '<td>' + (c.glucosa || '-') + '</td>';
         html += '<td><span class="badge ' + obtenerBadgeColor('glucosa', c.diag_glucosa) + '">' + (c.diag_glucosa || '-') + '</span></td>';
@@ -1812,6 +1830,11 @@
       const hoy = new Date().toISOString().split('T')[0];
       document.getElementById('controlFecha').value = hoy;
 
+      // Limpiar campos de validación
+      document.getElementById('controlNombreCompleto').value = '';
+      document.getElementById('controlEdad').value = '';
+      document.getElementById('controlNombreCompleto').style.color = '';
+
       document.getElementById('modalControl').classList.add('active');
     }
 
@@ -1821,6 +1844,9 @@
 
       // Llenar formulario
       document.getElementById('controlDni').value = control.dni;
+
+      // Validar DNI para mostrar nombre y edad
+      validarDniPersonal(control.dni);
 
       // Convertir fecha de dd/MM/yyyy a yyyy-MM-dd
       if (control.fecha) {
@@ -1835,6 +1861,7 @@
       document.getElementById('controlTalla').value = control.talla || '';
       document.getElementById('controlSistolica').value = control.sistolica || '';
       document.getElementById('controlDiastolica').value = control.diastolica || '';
+      document.getElementById('controlPulso').value = control.pulso || '';
       document.getElementById('controlGlucosa').value = control.glucosa || '';
 
       document.getElementById('modalControl').classList.add('active');
@@ -1843,6 +1870,33 @@
     function cerrarModalControl() {
       document.getElementById('modalControl').classList.remove('active');
       controlEditando = null;
+    }
+
+    function validarDniPersonal(dni) {
+      const campoNombre = document.getElementById('controlNombreCompleto');
+      const campoEdad = document.getElementById('controlEdad');
+
+      // Limpiar campos si DNI no tiene 8 dígitos
+      if (!dni || dni.length !== 8) {
+        campoNombre.value = '';
+        campoEdad.value = '';
+        campoNombre.style.color = '';
+        return;
+      }
+
+      // Buscar en el caché de personal
+      const persona = personalCache.find(p => String(p.dni).trim() === String(dni).trim());
+
+      if (persona) {
+        const nombreCompleto = persona.nombre + ' ' + persona.apellido;
+        campoNombre.value = nombreCompleto;
+        campoEdad.value = persona.edad || '-';
+        campoNombre.style.color = '#28a745'; // Verde para indicar que se encontró
+      } else {
+        campoNombre.value = 'DNI no encontrado';
+        campoEdad.value = '-';
+        campoNombre.style.color = '#dc3545'; // Rojo para indicar error
+      }
     }
 
     function guardarControl(event) {
@@ -1855,6 +1909,7 @@
         talla: document.getElementById('controlTalla').value,
         sistolica: document.getElementById('controlSistolica').value,
         diastolica: document.getElementById('controlDiastolica').value,
+        pulso: document.getElementById('controlPulso').value,
         glucosa: document.getElementById('controlGlucosa').value
       };
 

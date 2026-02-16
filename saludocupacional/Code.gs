@@ -96,9 +96,10 @@ function getControlesPorDni(dni) {
       diag_imc:     f[5],
       sistolica:    f[6],
       diastolica:   f[7],
-      diag_pa:      f[8],
-      glucosa:      f[9],
-      diag_glucosa: f[10]
+      pulso:        f[8],
+      diag_pa:      f[9],
+      glucosa:      f[10],
+      diag_glucosa: f[11]
     });
   }
 
@@ -128,9 +129,10 @@ function getTodosControles() {
       diag_imc:     f[5],
       sistolica:    f[6],
       diastolica:   f[7],
-      diag_pa:      f[8],
-      glucosa:      f[9],
-      diag_glucosa: f[10],
+      pulso:        f[8],
+      diag_pa:      f[9],
+      glucosa:      f[10],
+      diag_glucosa: f[11],
       fila:         i + 1
     });
   }
@@ -140,7 +142,7 @@ function getTodosControles() {
 
 /**
  * Agrega un nuevo control de salud
- * @param {Object} datos - Datos del control (dni, fecha, peso, talla, sistolica, diastolica, glucosa)
+ * @param {Object} datos - Datos del control (dni, fecha, peso, talla, sistolica, diastolica, pulso, glucosa)
  * @returns {Object} Resultado de la operación
  */
 function agregarControl(datos) {
@@ -152,6 +154,7 @@ function agregarControl(datos) {
     const talla = datos.talla ? parseFloat(datos.talla) : null;
     const sis   = datos.sistolica  ? parseFloat(datos.sistolica)  : null;
     const dia   = datos.diastolica ? parseFloat(datos.diastolica) : null;
+    const pul   = datos.pulso      ? parseFloat(datos.pulso)      : null;
     const glu   = datos.glucosa    ? parseFloat(datos.glucosa)    : null;
 
     const imc   = (peso && talla)  ? Math.round((peso / (talla * talla)) * 100) / 100 : '';
@@ -168,6 +171,7 @@ function agregarControl(datos) {
       diag_imc,
       sis || '',
       dia || '',
+      pul || '',
       diag_pa,
       glu || '',
       diag_glu
@@ -194,6 +198,7 @@ function editarControl(fila, datos) {
     const talla = datos.talla ? parseFloat(datos.talla) : null;
     const sis   = datos.sistolica  ? parseFloat(datos.sistolica)  : null;
     const dia   = datos.diastolica ? parseFloat(datos.diastolica) : null;
+    const pul   = datos.pulso      ? parseFloat(datos.pulso)      : null;
     const glu   = datos.glucosa    ? parseFloat(datos.glucosa)    : null;
 
     const imc   = (peso && talla)  ? Math.round((peso / (talla * talla)) * 100) / 100 : '';
@@ -201,7 +206,7 @@ function editarControl(fila, datos) {
     const diag_pa  = calcularDiagPA(sis, dia);
     const diag_glu = calcularDiagGlucosa(glu);
 
-    hoja.getRange(fila, 1, 1, 11).setValues([[
+    hoja.getRange(fila, 1, 1, 12).setValues([[
       datos.dni,
       new Date(datos.fecha),
       peso  || '',
@@ -210,6 +215,7 @@ function editarControl(fila, datos) {
       diag_imc,
       sis || '',
       dia || '',
+      pul || '',
       diag_pa,
       glu || '',
       diag_glu
