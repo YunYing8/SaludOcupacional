@@ -90,8 +90,8 @@ function getControlesPorDni(dni) {
     resultados.push({
       dni:          String(f[0]),
       fecha:        f[1] ? Utilities.formatDate(new Date(f[1]), 'America/Lima', 'dd/MM/yyyy') : '',
-      peso:         f[2],
-      talla:        f[3],
+      peso:         f[3],  // Columna D = PESO
+      talla:        f[2],  // Columna C = TALLA
       imc:          f[4],
       diag_imc:     f[5],
       sistolica:    f[6],
@@ -123,8 +123,8 @@ function getTodosControles() {
     resultados.push({
       dni:          String(f[0]),
       fecha:        f[1] ? Utilities.formatDate(new Date(f[1]), 'America/Lima', 'dd/MM/yyyy') : '',
-      peso:         f[2],
-      talla:        f[3],
+      peso:         f[3],  // Columna D = PESO
+      talla:        f[2],  // Columna C = TALLA
       imc:          f[4],
       diag_imc:     f[5],
       sistolica:    f[6],
@@ -165,8 +165,8 @@ function agregarControl(datos) {
     hoja.appendRow([
       datos.dni,
       new Date(datos.fecha),
-      peso  || '',
-      talla || '',
+      talla || '',  // Columna C = TALLA
+      peso  || '',  // Columna D = PESO
       imc,
       diag_imc,
       sis || '',
@@ -209,8 +209,8 @@ function editarControl(fila, datos) {
     hoja.getRange(fila, 1, 1, 12).setValues([[
       datos.dni,
       new Date(datos.fecha),
-      peso  || '',
-      talla || '',
+      talla || '',  // Columna C = TALLA
+      peso  || '',  // Columna D = PESO
       imc,
       diag_imc,
       sis || '',
@@ -309,8 +309,8 @@ function recalcularTodosLosControles() {
       // Si la fila está vacía (sin DNI), saltarla
       if (!f[0]) continue;
 
-      const peso  = f[2] ? parseFloat(f[2]) : null;
-      const talla = f[3] ? parseFloat(f[3]) : null;
+      const talla = f[2] ? parseFloat(f[2]) : null;  // Columna C = TALLA
+      const peso  = f[3] ? parseFloat(f[3]) : null;  // Columna D = PESO
       const sis   = f[6] ? parseFloat(f[6]) : null;
       const dia   = f[7] ? parseFloat(f[7]) : null;
       const pul   = f[8] ? parseFloat(f[8]) : null;
