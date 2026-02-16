@@ -290,6 +290,60 @@ function calcularDiagGlucosa(glu) {
 }
 
 /**
+ * Recalcula IMC y diagnósticos para TODOS los controles existentes en Excel
+ * IMPORTANTE: Ejecutar esta función UNA SOLA VEZ para actualizar datos ingresados manualmente
+ * @returns {Object} Resultado con cantidad de registros actualizados
+ */
+function recalcularTodosLosControles() {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const hoja = ss.getSheetByName(HOJA_CONTROLES);
+    const filas = hoja.getDataRange().getValues();
+
+    let actualizados = 0;
+
+    // Recorrer desde fila 2 (saltar encabezados)
+    for (let i = 1; i < filas.length; i++) {
+      const f = filas[i];
+
+      // Si la fila está vacía (sin DNI), saltarla
+      if (!f[0]) continue;
+
+      const peso  = f[2] ? parseFloat(f[2]) : null;
+      const talla = f[3] ? parseFloat(f[3]) : null;
+      const sis   = f[6] ? parseFloat(f[6]) : null;
+      const dia   = f[7] ? parseFloat(f[7]) : null;
+      const pul   = f[8] ? parseFloat(f[8]) : null;
+      const glu   = f[10] ? parseFloat(f[10]) : null;
+
+      // Recalcular IMC y diagnósticos
+      const imc      = (peso && talla) ? Math.round((peso / (talla * talla)) * 100) / 100 : '';
+      const diag_imc = calcularDiagIMC(imc);
+      const diag_pa  = calcularDiagPA(sis, dia);
+      const diag_glu = calcularDiagGlucosa(glu);
+
+      // Actualizar SOLO las columnas calculadas (E, F, J, L)
+      const filaExcel = i + 1;
+      hoja.getRange(filaExcel, 5).setValue(imc);        // Columna E: IMC
+      hoja.getRange(filaExcel, 6).setValue(diag_imc);   // Columna F: DIAG_IMC
+      hoja.getRange(filaExcel, 10).setValue(diag_pa);   // Columna J: DIAG_PA
+      hoja.getRange(filaExcel, 12).setValue(diag_glu);  // Columna L: DIAG_GLUCOSA
+
+      actualizados++;
+    }
+
+    return {
+      ok: true,
+      msg: 'Se actualizaron ' + actualizados + ' registros correctamente',
+      total: actualizados
+    };
+
+  } catch(e) {
+    return { ok: false, msg: 'Error: ' + e.toString() };
+  }
+}
+
+/**
  * Función de prueba para autenticación
  */
 function testAutenticar() {
