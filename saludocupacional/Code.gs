@@ -83,6 +83,13 @@ function getControlesPorDni(dni) {
   const filas = hoja.getDataRange().getValues();
   const resultados = [];
 
+  function safeNum(val) {
+    if (val === '' || val === null || val === undefined) return '';
+    if (val instanceof Date) return '';
+    const n = parseFloat(val);
+    return isNaN(n) ? '' : n;
+  }
+
   for (let i = 1; i < filas.length; i++) {
     const f = filas[i];
     if (String(f[0]) !== String(dni)) continue;
@@ -90,16 +97,16 @@ function getControlesPorDni(dni) {
     resultados.push({
       dni:          String(f[0]),
       fecha:        f[1] ? Utilities.formatDate(new Date(f[1]), 'America/Lima', 'dd/MM/yyyy') : '',
-      peso:         f[2],  // Columna C = PESO_KG
-      talla:        f[3],  // Columna D = TALLA_M
-      imc:          f[4],
-      diag_imc:     f[5],
-      sistolica:    f[6],
-      diastolica:   f[7],
-      pulso:        f[8],
-      diag_pa:      f[9],
-      glucosa:      f[10],
-      diag_glucosa: f[11]
+      peso:         safeNum(f[2]),  // Columna C = PESO_KG
+      talla:        safeNum(f[3]),  // Columna D = TALLA_M
+      imc:          safeNum(f[4]),
+      diag_imc:     f[5] ? String(f[5]) : '',
+      sistolica:    safeNum(f[6]),
+      diastolica:   safeNum(f[7]),
+      pulso:        safeNum(f[8]),
+      diag_pa:      f[9] ? String(f[9]) : '',
+      glucosa:      safeNum(f[10]),
+      diag_glucosa: f[11] ? String(f[11]) : ''
     });
   }
 
@@ -120,19 +127,27 @@ function getTodosControles() {
     const f = filas[i];
     if (!f[0]) continue;
 
+    // Convertir valores numéricos de forma segura (evitar que Sheets devuelva fechas en campos numéricos)
+    function safeNum(val) {
+      if (val === '' || val === null || val === undefined) return '';
+      if (val instanceof Date) return ''; // Si Sheets interpretó un número como fecha, ignorarlo
+      const n = parseFloat(val);
+      return isNaN(n) ? '' : n;
+    }
+
     resultados.push({
       dni:          String(f[0]),
       fecha:        f[1] ? Utilities.formatDate(new Date(f[1]), 'America/Lima', 'dd/MM/yyyy') : '',
-      peso:         f[2],  // Columna C = PESO_KG
-      talla:        f[3],  // Columna D = TALLA_M
-      imc:          f[4],
-      diag_imc:     f[5],
-      sistolica:    f[6],
-      diastolica:   f[7],
-      pulso:        f[8],
-      diag_pa:      f[9],
-      glucosa:      f[10],
-      diag_glucosa: f[11],
+      peso:         safeNum(f[2]),  // Columna C = PESO_KG
+      talla:        safeNum(f[3]),  // Columna D = TALLA_M
+      imc:          safeNum(f[4]),
+      diag_imc:     f[5] ? String(f[5]) : '',
+      sistolica:    safeNum(f[6]),
+      diastolica:   safeNum(f[7]),
+      pulso:        safeNum(f[8]),
+      diag_pa:      f[9] ? String(f[9]) : '',
+      glucosa:      safeNum(f[10]),
+      diag_glucosa: f[11] ? String(f[11]) : '',
       fila:         i + 1
     });
   }
