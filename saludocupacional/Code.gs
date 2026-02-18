@@ -110,7 +110,19 @@ function getControlesPorDni(dni) {
     });
   }
 
-  return resultados.reverse();
+  // Ordenar por fecha descendente (más reciente primero)
+  resultados.sort(function(a, b) {
+    if (!a.fecha && !b.fecha) return 0;
+    if (!a.fecha) return 1;
+    if (!b.fecha) return -1;
+    var pA = a.fecha.split('/');
+    var pB = b.fecha.split('/');
+    var dA = new Date(pA[2], pA[1] - 1, pA[0]);
+    var dB = new Date(pB[2], pB[1] - 1, pB[0]);
+    return dB - dA;
+  });
+
+  return resultados;
 }
 
 /**

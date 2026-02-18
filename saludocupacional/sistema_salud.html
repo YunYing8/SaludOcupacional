@@ -1209,8 +1209,14 @@
 
     function limpiarCache() {
       try {
-        const keys = ['personal', 'controles', 'controlesTrabajador'];
-        keys.forEach(key => localStorage.removeItem(key));
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key === 'personal' || key === 'controles' || (key && key.startsWith('controlesTrabajador'))) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach(function(key) { localStorage.removeItem(key); });
       } catch(e) {
         console.warn('Error al limpiar caché:', e);
       }
@@ -1628,19 +1634,12 @@
     }
 
     function cargarControlesTrabajador(dni) {
-      // Intentar cargar desde caché
-      const cached = obtenerDeCache('controlesTrabajador_' + dni);
-      if (cached) {
-        renderizarControlesTrabajador(cached);
-        return;
-      }
-
+      // Siempre consultar el servidor para mostrar datos actualizados del Excel
       mostrarLoading(true);
 
       google.script.run
         .withSuccessHandler(function(controles) {
           mostrarLoading(false);
-          guardarEnCache('controlesTrabajador_' + dni, controles);
           renderizarControlesTrabajador(controles);
         })
         .withFailureHandler(function(error) {
