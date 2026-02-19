@@ -10,7 +10,8 @@ function mostrarFormulario() {
 
 /**
  * Guarda un nuevo trabajador en la hoja "Registro"
- * @param {Object} datos - Datos del formulario (sin edad, se calcula aquí)
+ * Columna F (edad) la calcula el ARRAYFORMULA del sheet; no se escribe aquí.
+ * @param {Object} datos - Datos del formulario
  * @returns {Object} { ok: true } o { ok: false, msg: '...' }
  */
 function guardarEnSheet(datos) {
@@ -54,25 +55,18 @@ function guardarEnSheet(datos) {
     const partes = datos.fecha_nac.split('-');
     const fechaNac = new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
 
-    // ── Calcular edad en el servidor ──────────────────────────────────────
-    const hoy = new Date();
-    let edad = hoy.getFullYear() - fechaNac.getFullYear();
-    const diffMes = hoy.getMonth() - fechaNac.getMonth();
-    if (diffMes < 0 || (diffMes === 0 && hoy.getDate() < fechaNac.getDate())) {
-      edad--;
-    }
-
     // ── Escribir en la fila correcta (justo después del último dato real) ──
-    // Evita el bug de appendRow que salta a filas lejanas cuando hay
-    // formato aplicado en celdas vacías más abajo en el sheet.
+    // Columna F (edad) la gestiona el ARRAYFORMULA del sheet; se escribe en
+    // dos rangos separados (A–E y G–I) para no pisar esa fórmula.
     const nuevaFila = ultimaFilaDatos + 1;
-    hoja.getRange(nuevaFila, 1, 1, 9).setValues([[
+    hoja.getRange(nuevaFila, 1, 1, 5).setValues([[
       datos.nombre.trim(),
       datos.apellido.trim(),
       datos.dni.trim(),
       datos.cargo.trim(),
-      fechaNac,
-      edad,
+      fechaNac
+    ]]);
+    hoja.getRange(nuevaFila, 7, 1, 3).setValues([[
       datos.correo  ? datos.correo.trim()  : '',
       datos.celular ? datos.celular.trim() : '',
       datos.estado
