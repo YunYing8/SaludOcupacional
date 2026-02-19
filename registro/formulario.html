@@ -154,6 +154,92 @@
         transform: none;
       }
 
+      /* Pantalla de éxito */
+      .success-card {
+        display: none;
+        background: rgba(255, 255, 255, 0.97);
+        border-radius: 20px;
+        padding: 48px 32px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        text-align: center;
+        animation: slideUp 0.4s ease-out;
+      }
+
+      .check-circle {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #38a169, #276749);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 24px;
+        box-shadow: 0 8px 24px rgba(56,161,105,0.35);
+        animation: popIn 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+
+      @keyframes popIn {
+        from { transform: scale(0); opacity: 0; }
+        to   { transform: scale(1); opacity: 1; }
+      }
+
+      .check-circle svg {
+        width: 40px;
+        height: 40px;
+        stroke: white;
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+        stroke-dasharray: 60;
+        stroke-dashoffset: 60;
+        animation: drawCheck 0.4s ease-out 0.3s forwards;
+      }
+
+      @keyframes drawCheck {
+        to { stroke-dashoffset: 0; }
+      }
+
+      .success-card h2 {
+        color: #276749;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+
+      .success-card p {
+        color: #4a5568;
+        font-size: 0.95rem;
+        margin-bottom: 6px;
+      }
+
+      .success-card .nombre-registrado {
+        font-weight: 700;
+        color: #1a202c;
+        font-size: 1.1rem;
+        margin-bottom: 32px;
+      }
+
+      .btn-nuevo {
+        background: linear-gradient(135deg, #2c5282 0%, #1a365d 100%);
+        color: white;
+        padding: 14px 36px;
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.25s ease;
+        box-shadow: 0 6px 20px rgba(44, 82, 130, 0.3);
+      }
+
+      .btn-nuevo:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 28px rgba(44, 82, 130, 0.4);
+      }
+
       @media (max-width: 600px) {
         body  { padding: 12px; }
         form  { padding: 22px; }
@@ -164,7 +250,19 @@
 
   <body>
     <div class="container">
-      <h3>Registro de Trabajador</h3>
+      <h3 id="tituloPrincipal">Registro de Trabajador</h3>
+
+      <!-- Pantalla de éxito -->
+      <div id="successCard" class="success-card">
+        <div class="check-circle">
+          <svg viewBox="0 0 24 24"><polyline points="4 12 9 17 20 7"/></svg>
+        </div>
+        <h2>¡Registro Exitoso!</h2>
+        <p>El trabajador fue registrado correctamente.</p>
+        <p class="nombre-registrado" id="nombreRegistrado"></p>
+        <button class="btn-nuevo" onclick="nuevoRegistro()">+ Nuevo Registro</button>
+      </div>
+
       <form id="formRegistro" novalidate>
 
         <!-- Alerta de resultado -->
@@ -326,9 +424,11 @@
             btn.textContent = 'Guardar Registro';
 
             if (resultado.ok) {
-              mostrarAlerta('exito', '✓ Trabajador registrado correctamente.');
-              document.getElementById('formRegistro').reset();
-              limpiarErrores();
+              var nombreCompleto = datos.nombre + ' ' + datos.apellido;
+              document.getElementById('nombreRegistrado').textContent = nombreCompleto;
+              document.getElementById('formRegistro').style.display = 'none';
+              document.getElementById('tituloPrincipal').style.display = 'none';
+              document.getElementById('successCard').style.display = 'block';
             } else {
               mostrarAlerta('fallo', '⚠ ' + resultado.msg);
             }
@@ -339,6 +439,15 @@
             mostrarAlerta('fallo', '⚠ Error de conexión: ' + error.message);
           })
           .guardarEnSheet(datos);
+      }
+
+      function nuevoRegistro() {
+        document.getElementById('successCard').style.display = 'none';
+        document.getElementById('formRegistro').style.display = 'block';
+        document.getElementById('tituloPrincipal').style.display = 'block';
+        document.getElementById('formRegistro').reset();
+        limpiarErrores();
+        ocultarAlerta();
       }
     </script>
   </body>
