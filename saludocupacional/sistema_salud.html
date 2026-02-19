@@ -536,6 +536,82 @@
       background: #dbeafe;
       color: #1e40af;
     }
+    /* ===== DASHBOARD ADMIN ===== */
+    .admin-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .admin-tab {
+      padding: 0.6rem 1.4rem;
+      border: 2px solid var(--primary);
+      background: white;
+      color: var(--primary);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .admin-tab.active {
+      background: var(--primary);
+      color: white;
+    }
+    .admin-tab:hover:not(.active) {
+      background: #eff6ff;
+    }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .kpi-card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.2rem 1.4rem;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border-left: 5px solid var(--primary);
+    }
+    .kpi-card.danger  { border-left-color: var(--danger); }
+    .kpi-card.success { border-left-color: var(--success); }
+    .kpi-card.warning { border-left-color: var(--warning); }
+    .kpi-icon { font-size: 2rem; line-height: 1; }
+    .kpi-info { flex: 1; }
+    .kpi-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--gray-800);
+      line-height: 1.1;
+    }
+    .kpi-label {
+      font-size: 0.78rem;
+      color: var(--gray-500);
+      font-weight: 500;
+      margin-top: 0.2rem;
+    }
+    .dash-charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .dash-chart-card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.4rem;
+      box-shadow: var(--shadow);
+    }
+    .dash-chart-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--gray-700);
+      margin-bottom: 1rem;
+      text-align: center;
+    }
     /* Botones de acción en tabla */
     .btn-table {
       padding: 0.375rem 0.75rem;
@@ -857,6 +933,7 @@
     .mb-1 { margin-bottom: 0.5rem; }
     .mb-2 { margin-bottom: 1rem; }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
   <!-- OVERLAY DE CARGA -->
@@ -1020,7 +1097,7 @@
 
       <!-- VISTA ADMIN -->
       <div id="vistaAdmin" class="hidden">
-        <!-- Estadísticas -->
+        <!-- Estadísticas globales -->
         <div class="stats-grid">
           <div class="stat-card">
             <h3>Total Trabajadores</h3>
@@ -1049,45 +1126,155 @@
           </div>
         </div>
 
-        <!-- Tabla de controles -->
-        <div class="data-section">
-          <div class="section-header">
-            <h3 class="section-title">Todos los Controles</h3>
-            <div class="search-box">
-              <input
-                type="text"
-                id="searchControles"
-                placeholder="Buscar por DNI..."
-                oninput="filtrarControles()"
-              >
+        <!-- Tabs de navegación -->
+        <div class="admin-tabs">
+          <button id="tabBtnDashboard" class="admin-tab active" onclick="mostrarTabAdmin('dashboard')">
+            📊 Dashboard
+          </button>
+          <button id="tabBtnControles" class="admin-tab" onclick="mostrarTabAdmin('controles')">
+            📋 Controles
+          </button>
+        </div>
+
+        <!-- ===== SECCIÓN DASHBOARD ===== -->
+        <div id="dashboardSection">
+          <!-- KPIs de salud -->
+          <div class="kpi-grid">
+            <div class="kpi-card danger">
+              <div class="kpi-icon">⚠️</div>
+              <div class="kpi-info">
+                <div class="kpi-value" id="kpiEnRiesgo">-</div>
+                <div class="kpi-label">Personal en condición crítica</div>
+              </div>
+            </div>
+            <div class="kpi-card success">
+              <div class="kpi-icon">💚</div>
+              <div class="kpi-info">
+                <div class="kpi-value" id="kpiSaludable">-</div>
+                <div class="kpi-label">Con IMC saludable</div>
+              </div>
+            </div>
+            <div class="kpi-card warning">
+              <div class="kpi-icon">📅</div>
+              <div class="kpi-info">
+                <div class="kpi-value" id="kpiSinControl">-</div>
+                <div class="kpi-label">Sin evaluación (+90 días)</div>
+              </div>
             </div>
           </div>
-          <div class="table-wrapper">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>DNI</th>
-                  <th>Fecha</th>
-                  <th>Peso</th>
-                  <th>Talla</th>
-                  <th>IMC</th>
-                  <th>Diag. IMC</th>
-                  <th>PA</th>
-                  <th>PULSO</th>
-                  <th>Diag. PA</th>
-                  <th>Glucosa</th>
-                  <th>Diag. Glucosa</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody id="tablaAdminControles">
-                <tr>
-                  <td colspan="12" class="text-center">
-                    <div class="skeleton skeleton-text"></div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+
+          <!-- Gráficos de distribución (donut) -->
+          <div class="dash-charts-grid">
+            <div class="dash-chart-card">
+              <div class="dash-chart-title">Distribución IMC</div>
+              <canvas id="chartIMC"></canvas>
+            </div>
+            <div class="dash-chart-card">
+              <div class="dash-chart-title">Distribución Presión Arterial</div>
+              <canvas id="chartPA"></canvas>
+            </div>
+            <div class="dash-chart-card">
+              <div class="dash-chart-title">Distribución Glucosa</div>
+              <canvas id="chartGlu"></canvas>
+            </div>
+          </div>
+
+          <!-- Gráfico de barras: controles por mes -->
+          <div class="dash-chart-card" style="margin-bottom: 1.5rem;">
+            <div class="dash-chart-title">Controles Realizados — Últimos 6 Meses</div>
+            <canvas id="chartMeses" style="max-height: 220px;"></canvas>
+          </div>
+
+          <!-- Tabla: Personal en condición crítica -->
+          <div class="data-section">
+            <div class="section-header">
+              <h3 class="section-title">⚠️ Personal en Condición Crítica</h3>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>DNI</th>
+                    <th>Nombre</th>
+                    <th>Cargo</th>
+                    <th>Última Evaluación</th>
+                    <th>Diag. IMC</th>
+                    <th>Diag. PA</th>
+                    <th>Diag. Glucosa</th>
+                  </tr>
+                </thead>
+                <tbody id="tablaAlertas">
+                  <tr><td colspan="7" class="text-center">Cargando...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Tabla: Sin evaluación reciente -->
+          <div class="data-section">
+            <div class="section-header">
+              <h3 class="section-title">📅 Sin Evaluación Reciente (+90 días)</h3>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>DNI</th>
+                    <th>Nombre</th>
+                    <th>Cargo</th>
+                    <th>Última Evaluación</th>
+                    <th>Tiempo sin control</th>
+                  </tr>
+                </thead>
+                <tbody id="tablaSinControl">
+                  <tr><td colspan="5" class="text-center">Cargando...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== SECCIÓN CONTROLES ===== -->
+        <div id="controlesSection" class="hidden">
+          <div class="data-section">
+            <div class="section-header">
+              <h3 class="section-title">Todos los Controles</h3>
+              <div class="search-box">
+                <input
+                  type="text"
+                  id="searchControles"
+                  placeholder="Buscar por DNI..."
+                  oninput="filtrarControles()"
+                >
+              </div>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>DNI</th>
+                    <th>Fecha</th>
+                    <th>Peso</th>
+                    <th>Talla</th>
+                    <th>IMC</th>
+                    <th>Diag. IMC</th>
+                    <th>PA</th>
+                    <th>PULSO</th>
+                    <th>Diag. PA</th>
+                    <th>Glucosa</th>
+                    <th>Diag. Glucosa</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="tablaAdminControles">
+                  <tr>
+                    <td colspan="12" class="text-center">
+                      <div class="skeleton skeleton-text"></div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
@@ -1711,6 +1898,7 @@
         controlesCache = cachedControles;
         actualizarEstadisticasAdmin();
         renderizarControlesAdmin(cachedControles);
+        calcularDashboard();
         return;
       }
 
@@ -1730,6 +1918,7 @@
               guardarEnCache('controles', controles);
               actualizarEstadisticasAdmin();
               renderizarControlesAdmin(controles);
+              calcularDashboard();
             })
             .withFailureHandler(function(error) {
               mostrarLoading(false);
@@ -1978,6 +2167,276 @@
           alert('Error al eliminar: ' + error.message);
         })
         .eliminarControl(fila);
+    }
+
+    // ===== DASHBOARD ADMIN =====
+    var dashboardCharts = {};
+
+    function mostrarTabAdmin(tab) {
+      var dashSection = document.getElementById('dashboardSection');
+      var controlesSection = document.getElementById('controlesSection');
+      var tabDash = document.getElementById('tabBtnDashboard');
+      var tabCtrl = document.getElementById('tabBtnControles');
+
+      if (tab === 'dashboard') {
+        dashSection.classList.remove('hidden');
+        controlesSection.classList.add('hidden');
+        tabDash.classList.add('active');
+        tabCtrl.classList.remove('active');
+        if (controlesCache.length > 0) {
+          calcularDashboard();
+        }
+      } else {
+        dashSection.classList.add('hidden');
+        controlesSection.classList.remove('hidden');
+        tabDash.classList.remove('active');
+        tabCtrl.classList.add('active');
+      }
+    }
+
+    function calcularDashboard() {
+      // Obtener el último control por trabajador (más reciente por fecha)
+      var ultimoPorDni = {};
+      var sorted = controlesCache.slice().sort(function(a, b) {
+        if (!a.fecha && !b.fecha) return 0;
+        if (!a.fecha) return 1;
+        if (!b.fecha) return -1;
+        var pA = a.fecha.split('/');
+        var pB = b.fecha.split('/');
+        var dA = new Date(pA[2], parseInt(pA[1]) - 1, pA[0]);
+        var dB = new Date(pB[2], parseInt(pB[1]) - 1, pB[0]);
+        return dB - dA;
+      });
+      sorted.forEach(function(c) {
+        if (!ultimoPorDni[c.dni]) {
+          ultimoPorDni[c.dni] = c;
+        }
+      });
+      var ultimos = Object.values(ultimoPorDni);
+
+      // KPI: Personal en condición crítica (último control)
+      var CRITICOS_IMC = ['OBESIDAD II', 'OBESIDAD III'];
+      var CRITICOS_PA  = ['HIPERTENSIÓN II'];
+      var CRITICOS_GLU = ['DIABÉTICO'];
+      var enRiesgo = ultimos.filter(function(c) {
+        return CRITICOS_IMC.indexOf(c.diag_imc) !== -1 ||
+               CRITICOS_PA.indexOf(c.diag_pa)   !== -1 ||
+               CRITICOS_GLU.indexOf(c.diag_glucosa) !== -1;
+      });
+
+      // KPI: % IMC saludable
+      var imcSaludable = ultimos.filter(function(c) { return c.diag_imc === 'SALUDABLE'; });
+      var pctSaludable = ultimos.length > 0 ? Math.round(imcSaludable.length / ultimos.length * 100) : 0;
+
+      // KPI: Sin evaluación reciente (>90 días)
+      var hoy = new Date();
+      var sinControl = [];
+      personalCache.forEach(function(p) {
+        var ctrl = ultimoPorDni[String(p.dni).trim()];
+        if (!ctrl || !ctrl.fecha) {
+          sinControl.push({ nombre: p.nombre, apellido: p.apellido, dni: p.dni, cargo: p.cargo, ultimaFecha: 'Nunca', diasSinControl: Infinity });
+          return;
+        }
+        var partes = ctrl.fecha.split('/');
+        var fechaCtrl = new Date(partes[2], parseInt(partes[1]) - 1, partes[0]);
+        var dias = Math.floor((hoy - fechaCtrl) / (1000 * 60 * 60 * 24));
+        if (dias > 90) {
+          sinControl.push({ nombre: p.nombre, apellido: p.apellido, dni: p.dni, cargo: p.cargo, ultimaFecha: ctrl.fecha, diasSinControl: dias });
+        }
+      });
+
+      // Actualizar KPIs
+      document.getElementById('kpiEnRiesgo').textContent = enRiesgo.length;
+      document.getElementById('kpiSaludable').textContent = pctSaludable + '%';
+      document.getElementById('kpiSinControl').textContent = sinControl.length;
+
+      // Distribuciones para gráficos de torta
+      var distIMC = {}, distPA = {}, distGlu = {};
+      ultimos.forEach(function(c) {
+        if (c.diag_imc)     distIMC[c.diag_imc]     = (distIMC[c.diag_imc]     || 0) + 1;
+        if (c.diag_pa)      distPA[c.diag_pa]        = (distPA[c.diag_pa]       || 0) + 1;
+        if (c.diag_glucosa) distGlu[c.diag_glucosa]  = (distGlu[c.diag_glucosa] || 0) + 1;
+      });
+
+      // Controles por mes (últimos 6 meses)
+      var labelesMeses = [];
+      var conteoPorMes = [];
+      for (var i = 5; i >= 0; i--) {
+        var d = new Date();
+        d.setDate(1);
+        d.setMonth(d.getMonth() - i);
+        var mesNombre = d.toLocaleString('es', { month: 'short' }) + ' ' + String(d.getFullYear()).slice(2);
+        labelesMeses.push(mesNombre);
+        var mes  = d.getMonth();
+        var anio = d.getFullYear();
+        var count = controlesCache.filter(function(c) {
+          if (!c.fecha) return false;
+          var p = c.fecha.split('/');
+          return parseInt(p[1]) - 1 === mes && parseInt(p[2]) === anio;
+        }).length;
+        conteoPorMes.push(count);
+      }
+
+      // Renderizar gráficos
+      renderizarGraficoDonut('chartIMC', distIMC,
+        ['SALUDABLE', 'SOBREPESO', 'OBESIDAD I', 'OBESIDAD II', 'OBESIDAD III', 'POR DEBAJO DEL PESO']);
+      renderizarGraficoDonut('chartPA', distPA,
+        ['NORMAL', 'ELEVADA', 'HIPERTENSIÓN I', 'HIPERTENSIÓN II']);
+      renderizarGraficoDonut('chartGlu', distGlu,
+        ['NORMAL', 'PRE-DIABÉTICO', 'DIABÉTICO', 'HIPOGLUCEMIA']);
+      renderizarGraficoBarras('chartMeses', labelesMeses, conteoPorMes);
+
+      // Renderizar tablas
+      renderizarAlertas(enRiesgo);
+      renderizarSinControl(sinControl);
+    }
+
+    var COLORES_DIAG = {
+      'SALUDABLE':           '#059669',
+      'SOBREPESO':           '#f59e0b',
+      'OBESIDAD I':          '#ef4444',
+      'OBESIDAD II':         '#b91c1c',
+      'OBESIDAD III':        '#7f1d1d',
+      'POR DEBAJO DEL PESO': '#0284c7',
+      'NORMAL':              '#059669',
+      'ELEVADA':             '#f59e0b',
+      'HIPERTENSIÓN I':      '#ef4444',
+      'HIPERTENSIÓN II':     '#b91c1c',
+      'PRE-DIABÉTICO':       '#f59e0b',
+      'DIABÉTICO':           '#ef4444',
+      'HIPOGLUCEMIA':        '#0284c7'
+    };
+
+    function renderizarGraficoDonut(canvasId, dist, orden) {
+      var labels = [], datos = [];
+      orden.forEach(function(key) {
+        if (dist[key]) { labels.push(key); datos.push(dist[key]); }
+      });
+      Object.keys(dist).forEach(function(key) {
+        if (orden.indexOf(key) === -1) { labels.push(key); datos.push(dist[key]); }
+      });
+
+      if (dashboardCharts[canvasId]) {
+        dashboardCharts[canvasId].destroy();
+        dashboardCharts[canvasId] = null;
+      }
+
+      var canvas = document.getElementById(canvasId);
+      var ctx = canvas.getContext('2d');
+
+      if (labels.length === 0) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '13px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Sin datos', canvas.width / 2, canvas.height / 2);
+        return;
+      }
+
+      dashboardCharts[canvasId] = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: datos,
+            backgroundColor: labels.map(function(l) { return COLORES_DIAG[l] || '#9ca3af'; }),
+            borderWidth: 2,
+            borderColor: '#fff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { font: { size: 11 }, padding: 8, boxWidth: 12 }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(ctx) {
+                  var total = ctx.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                  var pct = Math.round(ctx.parsed / total * 100);
+                  return ctx.label + ': ' + ctx.parsed + ' (' + pct + '%)';
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderizarGraficoBarras(canvasId, labels, datos) {
+      if (dashboardCharts[canvasId]) {
+        dashboardCharts[canvasId].destroy();
+        dashboardCharts[canvasId] = null;
+      }
+      var ctx = document.getElementById(canvasId).getContext('2d');
+      dashboardCharts[canvasId] = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Controles realizados',
+            data: datos,
+            backgroundColor: '#3b82f6',
+            borderRadius: 6,
+            borderSkipped: false
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+        }
+      });
+    }
+
+    function renderizarAlertas(alertas) {
+      var tbody = document.getElementById('tablaAlertas');
+      if (!alertas || alertas.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center" style="color:var(--success);padding:1rem;">✓ No hay trabajadores en condición crítica</td></tr>';
+        return;
+      }
+      var html = '';
+      alertas.forEach(function(c) {
+        var persona = personalCache.find(function(p) { return String(p.dni).trim() === String(c.dni).trim(); });
+        var nombre = persona ? (persona.nombre + ' ' + persona.apellido) : '-';
+        var cargo  = persona ? (persona.cargo || '-') : '-';
+        html += '<tr>';
+        html += '<td>' + c.dni + '</td>';
+        html += '<td>' + nombre + '</td>';
+        html += '<td>' + cargo + '</td>';
+        html += '<td>' + (c.fecha || '-') + '</td>';
+        html += '<td><span class="badge ' + obtenerBadgeColor('imc', c.diag_imc) + '">' + (c.diag_imc || '-') + '</span></td>';
+        html += '<td><span class="badge ' + obtenerBadgeColor('pa', c.diag_pa) + '">' + (c.diag_pa || '-') + '</span></td>';
+        html += '<td><span class="badge ' + obtenerBadgeColor('glucosa', c.diag_glucosa) + '">' + (c.diag_glucosa || '-') + '</span></td>';
+        html += '</tr>';
+      });
+      tbody.innerHTML = html;
+    }
+
+    function renderizarSinControl(lista) {
+      var tbody = document.getElementById('tablaSinControl');
+      if (!lista || lista.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center" style="color:var(--success);padding:1rem;">✓ Todo el personal tiene evaluación reciente</td></tr>';
+        return;
+      }
+      lista.sort(function(a, b) { return b.diasSinControl - a.diasSinControl; });
+      var html = '';
+      lista.forEach(function(p) {
+        var diasText = p.diasSinControl === Infinity ? 'Nunca evaluado' : p.diasSinControl + ' días';
+        var cls = p.diasSinControl > 180 ? 'badge-danger' : 'badge-warning';
+        html += '<tr>';
+        html += '<td>' + p.dni + '</td>';
+        html += '<td>' + p.nombre + ' ' + p.apellido + '</td>';
+        html += '<td>' + (p.cargo || '-') + '</td>';
+        html += '<td>' + p.ultimaFecha + '</td>';
+        html += '<td><span class="badge ' + cls + '">' + diasText + '</span></td>';
+        html += '</tr>';
+      });
+      tbody.innerHTML = html;
     }
 
     // ===== CERRAR MODAL AL HACER CLICK FUERA =====
