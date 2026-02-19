@@ -27,17 +27,30 @@ function guardarEnSheet(datos) {
 
     const hoja = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Registro');
 
-    // ── Verificar DNI duplicado ────────────────────────────────────────────
-    const filas = hoja.getDataRange().getValues();
-    for (let i = 1; i < filas.length; i++) {
-      if (String(filas[i][2]).trim() === String(datos.dni).trim()) {
-        return { ok: false, msg: 'Ya existe un trabajador registrado con el DNI ' + datos.dni + '.' };
+    // ── Una sola lectura: detectar duplicado + última fila con datos reales ─
+    // Leemos solo columnas A (nombre) y C (DNI) para no traer todo el sheet.
+    // Usamos getLastRow() solo para dimensionar el rango; si hay filas con
+    // formato vacías al final, la búsqueda desde abajo las ignora.
+    const totalFilas = hoja.getLastRow();
+    let ultimaFilaDatos = 1; // fila del encabezado como mínimo
+
+    if (totalFilas > 1) {
+      // Columnas A (índice 0) y C (índice 2) — rango desde fila 2 hasta el final
+      const rango = hoja.getRange(2, 1, totalFilas - 1, 3).getValues();
+
+      for (let i = 0; i < rango.length; i++) {
+        // Verificar DNI duplicado en columna C
+        if (String(rango[i][2]).trim() === String(datos.dni).trim()) {
+          return { ok: false, msg: 'Ya existe un trabajador registrado con el DNI ' + datos.dni + '.' };
+        }
+        // Ir registrando la última fila que realmente tiene datos en columna A
+        if (rango[i][0] !== '') {
+          ultimaFilaDatos = i + 2; // +1 por índice 0, +1 por encabezado
+        }
       }
     }
 
     // ── Parsear fecha sin problemas de zona horaria ───────────────────────
-    // El input date devuelve "yyyy-MM-dd"; construimos la fecha con partes
-    // para evitar desfases por UTC vs. hora local.
     const partes = datos.fecha_nac.split('-');
     const fechaNac = new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
 
@@ -49,18 +62,21 @@ function guardarEnSheet(datos) {
       edad--;
     }
 
-    // ── Insertar fila ─────────────────────────────────────────────────────
-    hoja.appendRow([
+    // ── Escribir en la fila correcta (justo después del último dato real) ──
+    // Evita el bug de appendRow que salta a filas lejanas cuando hay
+    // formato aplicado en celdas vacías más abajo en el sheet.
+    const nuevaFila = ultimaFilaDatos + 1;
+    hoja.getRange(nuevaFila, 1, 1, 9).setValues([[
       datos.nombre.trim(),
       datos.apellido.trim(),
       datos.dni.trim(),
       datos.cargo.trim(),
-      fechaNac,                                         // Date real → Sheets lo formatea
-      edad,                                             // número, sin texto "años"
+      fechaNac,
+      edad,
       datos.correo  ? datos.correo.trim()  : '',
       datos.celular ? datos.celular.trim() : '',
       datos.estado
-    ]);
+    ]]);
 
     return { ok: true };
 
