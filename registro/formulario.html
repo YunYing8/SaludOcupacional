@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #2c5282 0%, #1a365d 100%);
+        min-height: 100vh;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 500px;
+        animation: slideUp 0.5s ease-out;
+      }
+
+      @keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+
+      h3 {
+        text-align: center;
+        color: white;
+        font-size: 1.6rem;
+        margin-bottom: 24px;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        font-weight: 300;
+      }
+
+      form {
+        background: rgba(255, 255, 255, 0.97);
+        border-radius: 20px;
+        padding: 32px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 6px;
+        color: #333;
+        font-weight: 600;
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      label .req {
+        color: #e53e3e;
+        margin-left: 2px;
+      }
+
+      input, select {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e1e5e9;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        transition: all 0.25s ease;
+        background: white;
+        outline: none;
+        color: #1a202c;
+      }
+
+      input:focus, select:focus {
+        border-color: #2c5282;
+        box-shadow: 0 0 0 3px rgba(44, 82, 130, 0.12);
+      }
+
+      input.error {
+        border-color: #e53e3e;
+        box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.12);
+      }
+
+      .error-msg {
+        font-size: 0.78rem;
+        color: #e53e3e;
+        margin-top: 4px;
+        display: none;
+      }
+
+      select {
+        cursor: pointer;
+        background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0xIDFMNiA2TDExIDEiIHN0cm9rZT0iIzJjNTI4MiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+');
+        background-repeat: no-repeat;
+        background-position: right 16px center;
+        background-size: 12px;
+        appearance: none;
+        -webkit-appearance: none;
+      }
+
+      /* Alerta de resultado (éxito / error) */
+      .alerta {
+        display: none;
+        padding: 12px 16px;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      .alerta.exito {
+        background: #c6f6d5;
+        color: #22543d;
+        border: 1px solid #9ae6b4;
+      }
+      .alerta.fallo {
+        background: #fed7d7;
+        color: #742a2a;
+        border: 1px solid #fc8181;
+      }
+
+      /* Botón guardar */
+      button[type="button"] {
+        background: linear-gradient(135deg, #2c5282 0%, #1a365d 100%);
+        color: white;
+        padding: 15px 40px;
+        border: none;
+        width: 100%;
+        border-radius: 50px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.25s ease;
+        box-shadow: 0 6px 20px rgba(44, 82, 130, 0.3);
+        margin-top: 4px;
+      }
+
+      button[type="button"]:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 28px rgba(44, 82, 130, 0.4);
+      }
+
+      button[type="button"]:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      @media (max-width: 600px) {
+        body  { padding: 12px; }
+        form  { padding: 22px; }
+        h3    { font-size: 1.3rem; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <h3>Registro de Trabajador</h3>
+      <form id="formRegistro" novalidate>
+
+        <!-- Alerta de resultado -->
+        <div id="alerta" class="alerta"></div>
+
+        <div class="form-group">
+          <label for="nombre">Nombre <span class="req">*</span></label>
+          <input type="text" id="nombre" placeholder="Ingresa el nombre" autocomplete="off">
+          <div class="error-msg" id="err-nombre"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="apellido">Apellido <span class="req">*</span></label>
+          <input type="text" id="apellido" placeholder="Ingresa el apellido" autocomplete="off">
+          <div class="error-msg" id="err-apellido"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="dni">DNI <span class="req">*</span></label>
+          <input type="text" id="dni" placeholder="8 dígitos" maxlength="8"
+                 inputmode="numeric" pattern="\d{8}" autocomplete="off">
+          <div class="error-msg" id="err-dni"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="cargo">Cargo <span class="req">*</span></label>
+          <input type="text" id="cargo" placeholder="Ej: Operador de Grúa" autocomplete="off">
+          <div class="error-msg" id="err-cargo"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="fecha_nac">Fecha de Nacimiento <span class="req">*</span></label>
+          <input type="date" id="fecha_nac">
+          <div class="error-msg" id="err-fecha"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="correo">Correo Electrónico</label>
+          <input type="email" id="correo" placeholder="ejemplo@correo.com" autocomplete="off">
+          <div class="error-msg" id="err-correo"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="celular">Celular</label>
+          <input type="text" id="celular" placeholder="9 dígitos"
+                 maxlength="9" inputmode="numeric" autocomplete="off">
+        </div>
+
+        <div class="form-group">
+          <label for="estado">Estado</label>
+          <select id="estado">
+            <option value="ACTIVO">ACTIVO</option>
+            <option value="INACTIVO">INACTIVO</option>
+          </select>
+        </div>
+
+        <button type="button" id="btnGuardar" onclick="guardar()">Guardar Registro</button>
+      </form>
+    </div>
+
+    <script>
+      // Permitir solo números en DNI y celular
+      document.getElementById('dni').addEventListener('input', function() {
+        this.value = this.value.replace(/\D/g, '');
+      });
+      document.getElementById('celular').addEventListener('input', function() {
+        this.value = this.value.replace(/\D/g, '');
+      });
+
+      function mostrarAlerta(tipo, mensaje) {
+        var el = document.getElementById('alerta');
+        el.className = 'alerta ' + tipo;
+        el.textContent = mensaje;
+        el.style.display = 'block';
+      }
+
+      function ocultarAlerta() {
+        document.getElementById('alerta').style.display = 'none';
+      }
+
+      function marcarError(campoId, errorId, mensaje) {
+        document.getElementById(campoId).classList.add('error');
+        var err = document.getElementById(errorId);
+        if (err) { err.textContent = mensaje; err.style.display = 'block'; }
+      }
+
+      function limpiarErrores() {
+        document.querySelectorAll('input').forEach(function(el) { el.classList.remove('error'); });
+        document.querySelectorAll('.error-msg').forEach(function(el) {
+          el.textContent = ''; el.style.display = 'none';
+        });
+      }
+
+      function validar() {
+        limpiarErrores();
+        var valido = true;
+
+        var nombre = document.getElementById('nombre').value.trim();
+        if (!nombre) {
+          marcarError('nombre', 'err-nombre', 'El nombre es obligatorio.');
+          valido = false;
+        }
+
+        var apellido = document.getElementById('apellido').value.trim();
+        if (!apellido) {
+          marcarError('apellido', 'err-apellido', 'El apellido es obligatorio.');
+          valido = false;
+        }
+
+        var dni = document.getElementById('dni').value.trim();
+        if (!dni || !/^\d{8}$/.test(dni)) {
+          marcarError('dni', 'err-dni', 'El DNI debe tener exactamente 8 dígitos numéricos.');
+          valido = false;
+        }
+
+        var cargo = document.getElementById('cargo').value.trim();
+        if (!cargo) {
+          marcarError('cargo', 'err-cargo', 'El cargo es obligatorio.');
+          valido = false;
+        }
+
+        var fecha = document.getElementById('fecha_nac').value;
+        if (!fecha) {
+          marcarError('fecha_nac', 'err-fecha', 'La fecha de nacimiento es obligatoria.');
+          valido = false;
+        }
+
+        var correo = document.getElementById('correo').value.trim();
+        if (correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
+          marcarError('correo', 'err-correo', 'El correo no tiene un formato válido.');
+          valido = false;
+        }
+
+        return valido;
+      }
+
+      function guardar() {
+        ocultarAlerta();
+        if (!validar()) return;
+
+        var btn = document.getElementById('btnGuardar');
+        btn.disabled = true;
+        btn.textContent = 'Guardando...';
+
+        var datos = {
+          nombre:    document.getElementById('nombre').value.trim(),
+          apellido:  document.getElementById('apellido').value.trim(),
+          dni:       document.getElementById('dni').value.trim(),
+          cargo:     document.getElementById('cargo').value.trim(),
+          fecha_nac: document.getElementById('fecha_nac').value,  // "yyyy-MM-dd"
+          correo:    document.getElementById('correo').value.trim(),
+          celular:   document.getElementById('celular').value.trim(),
+          estado:    document.getElementById('estado').value
+        };
+
+        google.script.run
+          .withSuccessHandler(function(resultado) {
+            btn.disabled = false;
+            btn.textContent = 'Guardar Registro';
+
+            if (resultado.ok) {
+              mostrarAlerta('exito', '✓ Trabajador registrado correctamente.');
+              document.getElementById('formRegistro').reset();
+              limpiarErrores();
+            } else {
+              mostrarAlerta('fallo', '⚠ ' + resultado.msg);
+            }
+          })
+          .withFailureHandler(function(error) {
+            btn.disabled = false;
+            btn.textContent = 'Guardar Registro';
+            mostrarAlerta('fallo', '⚠ Error de conexión: ' + error.message);
+          })
+          .guardarEnSheet(datos);
+      }
+    </script>
+  </body>
+</html>
