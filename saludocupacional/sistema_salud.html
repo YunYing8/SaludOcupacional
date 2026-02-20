@@ -1571,18 +1571,23 @@
       };
     }
 
-    function mostrarRecomendaciones(ultimoControl) {
+    function mostrarRecomendaciones(ultimoControl, ultimoConPeso) {
       const container = document.getElementById('healthRecommendations');
       if (!container || !ultimoControl) return;
 
       let html = '';
 
       // Recomendación de IMC
+      // Si el control más reciente no tiene peso/talla, usar el último que sí los registró
+      const fuenteIMC = (ultimoConPeso && ultimoConPeso.peso && ultimoConPeso.talla)
+        ? ultimoConPeso
+        : ultimoControl;
+
       const recIMC = generarRecomendacionIMC(
-        ultimoControl.peso,
-        ultimoControl.talla,
-        ultimoControl.imc,
-        ultimoControl.diag_imc
+        fuenteIMC.peso,
+        fuenteIMC.talla,
+        fuenteIMC.imc,
+        fuenteIMC.diag_imc
       );
 
       if (recIMC) {
@@ -1595,6 +1600,10 @@
           html += '  <div class="recommendation-value">' + recIMC.valor + '</div>';
         }
         html += '  <div class="recommendation-text">' + recIMC.mensaje + '</div>';
+        // Si el peso viene de un control anterior, mostrar de qué fecha proviene
+        if (ultimoConPeso && ultimoConPeso !== ultimoControl) {
+          html += '  <div class="recommendation-tip">📅 Basado en la medición del ' + ultimoConPeso.fecha + ' (el control más reciente no registró peso/talla).</div>';
+        }
         if (recIMC.consejo) {
           html += '  <div class="recommendation-tip">💡 ' + recIMC.consejo + '</div>';
         }
@@ -1848,7 +1857,9 @@
 
       // Mostrar recomendaciones basadas en el ÚLTIMO control (más reciente)
       const ultimoControl = controles[0]; // Ya vienen ordenados por fecha descendente
-      mostrarRecomendaciones(ultimoControl);
+      // Para IMC: si el control más reciente no tiene peso/talla, buscar el último que sí los tenga
+      const ultimoConPeso = controles.find(function(c) { return c.peso && c.talla; }) || null;
+      mostrarRecomendaciones(ultimoControl, ultimoConPeso);
 
       let html = '';
       controles.forEach(function(c) {
