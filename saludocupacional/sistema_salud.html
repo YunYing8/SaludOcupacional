@@ -1243,7 +1243,7 @@
                 <input
                   type="text"
                   id="searchControles"
-                  placeholder="Buscar por DNI..."
+                  placeholder="Buscar por DNI o nombre..."
                   oninput="filtrarControles()"
                 >
               </div>
@@ -1253,6 +1253,7 @@
                 <thead>
                   <tr>
                     <th>DNI</th>
+                    <th>Nombre</th>
                     <th>Fecha</th>
                     <th>Peso</th>
                     <th>Talla</th>
@@ -1268,7 +1269,7 @@
                 </thead>
                 <tbody id="tablaAdminControles">
                   <tr>
-                    <td colspan="12" class="text-center">
+                    <td colspan="13" class="text-center">
                       <div class="skeleton skeleton-text"></div>
                     </td>
                   </tr>
@@ -1969,7 +1970,7 @@
       const tbody = document.getElementById('tablaAdminControles');
 
       if (!controles || controles.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="12" class="text-center">No hay controles registrados</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="13" class="text-center">No hay controles registrados</td></tr>';
         return;
       }
 
@@ -1977,8 +1978,13 @@
       controles.forEach(function(c) {
         const pa = (c.sistolica && c.diastolica) ? c.sistolica + '/' + c.diastolica : '-';
 
-        html += '<tr data-dni="' + c.dni + '">';
+        // Buscar nombre completo en el caché de personal para mostrarlo en la tabla
+        const persona = personalCache.find(function(p) { return String(p.dni).trim() === String(c.dni).trim(); });
+        const nombreCompleto = persona ? (persona.nombre + ' ' + persona.apellido) : '-';
+
+        html += '<tr data-dni="' + c.dni + '" data-nombre="' + nombreCompleto.toLowerCase() + '">';
         html += '<td>' + c.dni + '</td>';
+        html += '<td>' + nombreCompleto + '</td>';
         html += '<td>' + (c.fecha || '-') + '</td>';
         html += '<td>' + (c.peso || '-') + '</td>';
         html += '<td>' + (c.talla || '-') + '</td>';
@@ -2007,16 +2013,14 @@
         const filas = document.querySelectorAll('#tablaAdminControles tr');
 
         filas.forEach(function(fila) {
-          const dni = fila.getAttribute('data-dni');
-          if (!dni) return;
+          const dni    = (fila.getAttribute('data-dni')    || '').toLowerCase();
+          const nombre = (fila.getAttribute('data-nombre') || '').toLowerCase();
+          if (!dni && !nombre) return; // fila sin datos (skeleton)
 
-          if (dni.includes(termino)) {
-            fila.style.display = '';
-          } else {
-            fila.style.display = 'none';
-          }
+          const coincide = !termino || dni.includes(termino) || nombre.includes(termino);
+          fila.style.display = coincide ? '' : 'none';
         });
-      }, 300); // Debounce de 300ms
+      }, 300);
     }
 
     // ===== MODAL CONTROL =====

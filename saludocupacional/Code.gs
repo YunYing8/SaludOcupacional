@@ -189,9 +189,14 @@ function agregarControl(datos) {
     const diag_pa  = calcularDiagPA(sis, dia);
     const diag_glu = calcularDiagGlucosa(glu);
 
+    // Parsear fecha por partes para evitar el desfase UTC→Lima (sin esto "2026-02-21"
+    // se interpreta como medianoche UTC, que en Lima UTC-5 cae el día 20).
+    const pf = datos.fecha.split('-');
+    const fechaLocal = new Date(parseInt(pf[0]), parseInt(pf[1]) - 1, parseInt(pf[2]));
+
     hoja.appendRow([
       datos.dni,
-      new Date(datos.fecha),
+      fechaLocal,
       peso  || '',  // Columna C = PESO_KG
       talla || '',  // Columna D = TALLA_M
       imc,
@@ -233,9 +238,12 @@ function editarControl(fila, datos) {
     const diag_pa  = calcularDiagPA(sis, dia);
     const diag_glu = calcularDiagGlucosa(glu);
 
+    const pf = datos.fecha.split('-');
+    const fechaLocal = new Date(parseInt(pf[0]), parseInt(pf[1]) - 1, parseInt(pf[2]));
+
     hoja.getRange(fila, 1, 1, 12).setValues([[
       datos.dni,
-      new Date(datos.fecha),
+      fechaLocal,
       peso  || '',  // Columna C = PESO_KG
       talla || '',  // Columna D = TALLA_M
       imc,
@@ -296,10 +304,13 @@ function calcularDiagPA(sis, dia) {
   if (!sis || !dia) return '';
   sis = parseFloat(sis);
   dia = parseFloat(dia);
-  if (sis < 120 && dia < 80)  return 'NORMAL';
-  if (sis < 130 && dia < 80)  return 'ELEVADA';
-  if (sis < 140 || dia < 90)  return 'HIPERTENSIÓN I';
-  return 'HIPERTENSIÓN II';
+  if (sis > 180 || dia > 120)                              return 'CRISIS HIPERTENSIVA';
+  if (sis >= 140 || dia >= 90)                             return 'HIPERTENSIÓN II';
+  if ((sis >= 130 && sis <= 139) || (dia >= 81 && dia <= 89)) return 'HIPERTENSIÓN I';
+  if (sis >= 120 && sis <= 129 && dia < 80)                return 'ELEVADA';
+  if (sis >= 80  && sis <= 120 && dia >= 60 && dia <= 80)  return 'NORMAL';
+  if (sis < 80   || dia < 60)                              return 'HIPOTENSIÓN';
+  return '';
 }
 
 /**
